@@ -4,7 +4,8 @@ https://www.lexjansen.com/phuse-us/2025/sm/PAP_SM02.pdf
 
 This macro adapts code from PharmaSUG 2015, DV07 "Getting Sankey with Bar Charts", Shane Rosenbalm/Rho, Inc. 
 https://www.lexjansen.com/pharmasug/2015/DV/PharmaSUG-2015-DV07.pdf
-Original code is available here: https://github.com/RhoInc/sas-sankeybarchart/blob/master/README.md 
+
+Original code is available here: https://github.com/RhoInc/sas-sankeybarchart
 
 This updated macro allows for showing inflow/outflow counts/percentages, modifying the colors via attribute maps, and generating a matching table.
 
