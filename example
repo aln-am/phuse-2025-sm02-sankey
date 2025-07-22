@@ -1,0 +1,184 @@
+
+/*Example plot for Sankey*/
+
+options mlogic mprint mprintnest mlogicnest symbolgen mergenoby=WARN ;
+proc datasets lib=work kill nolist;run;quit;
+
+data test;
+    call streaminit(1234);
+
+    do usubjid = 1 to 50;
+    prob = rand('Uniform');
+    if prob < .5 then cat = 4;
+        else if prob < .75 then cat = 3;
+        else if prob < .9 then cat = 2;
+        else cat=1;
+
+        do avisitn = 1 to 5;
+
+            if 2 le avisitn < 3 then do;
+                prob2 = rand('Uniform');
+
+                if cat = 4 then do;
+                    if prob2 < .6 then cat = 3;
+                    else if prob2 < .8 then cat = 2;
+                    else if prob2 < .95 then cat = 1;
+                end;
+                if cat = 3 then do;
+                    if prob2 < .5 then cat = 2;
+                    else if prob2 < .75 then cat = 1;
+                    else if prob2 < .8 then cat = 4;
+                end;
+                if cat = 2 then do;
+                    if prob2 < .3 then cat = 1;
+                    else if prob2 < .5 then cat = 3;
+                    else if prob2 < .8 then cat = 4;
+                end;
+                if cat = 1 then do;
+                    if prob2 < .2 then cat = 2;
+                    else if prob2 < .25 then cat = 3;
+                end;
+            end;
+
+            else if avisitn = 3 then do;
+                prob3 = rand('Uniform');
+
+                if cat = 4 then do;
+                    if prob3 < .2 then cat = 3;
+                    else if prob3 < .8 then cat = 2;
+                    else if prob3 < 1 then cat = 1;
+                end;
+                if cat = 3 then do;
+                    if prob3 < .8 then cat = 2;
+                    else if prob3 < .85 then cat = 1;
+                end;
+                if cat = 2 then do;
+                    if prob3 < .85 then cat = 1;
+                    else if prob3 < .95 then cat = 3;
+                end;
+                if cat = 1 then do;
+                    if prob3 < .1 then cat = 2;
+                    else if prob3 < .2 then cat = 3;
+                end;
+            end;
+                
+
+            else if avisitn > 3 then do;
+                prob4 = rand('Uniform');
+
+                if cat = 4 then do;
+                     if prob4 < .8 then cat = 2;
+                    else if prob2 < .95 then cat = 1;
+                end;
+                if cat = 3 then do;
+                    if prob4 < .8 then cat = 2;
+                    else if prob4 < .9 then cat = 1;
+                end;
+                if cat = 2 then do;
+                    if prob4 < .9 then cat = 1;
+                end;
+                if cat = 1 then do;
+                    if prob4 < .1 then cat = 2;
+                    else if prob4 >.99 then cat=4;
+                end;
+            end;
+
+
+            output;
+        end;
+    end;
+    run;
+
+
+
+proc format;
+value visf
+1='Baseline'
+2='Month 6'
+3='Month 12'
+4='Month 18'
+5='Month 24';
+value avalf
+1='Grade 1'
+2='Grade 2'
+3='Grade 3'
+4='Grade 4'
+;
+run;
+
+
+/*attribute map*/
+
+data attr1;
+
+length fillcolor value $100;
+
+    id = 'sev2';
+    do; value='Grade 1' ;fillcolor="cxFFE15D";linecolor=fillcolor;output;end;
+    do; value='Grade 2' ;fillcolor="cxF49D1A";linecolor=fillcolor;output;end;
+    do; value='Grade 3' ;fillcolor="cxDC3535";linecolor=fillcolor;output;end;
+    do; value='Grade 4' ;fillcolor="cxB01E68";linecolor=fillcolor;output;end;
+    do; value='Missing';fillcolor='lightgray';linecolor=fillcolor;output;end;
+
+    id = 'alt';
+    do; value='Grade 1' ;fillcolor="cxA9D4C7";linecolor=fillcolor;output;end;
+    do; value='Grade 2' ;fillcolor="cxEDE2D6";linecolor=fillcolor;output;end;
+    do; value='Grade 3' ;fillcolor="cxB6C5DB";linecolor=fillcolor;output;end;
+    do; value='Grade 4' ;fillcolor="cxFACDCD";linecolor=fillcolor;output;end;
+    do; value='Missing';fillcolor='lightgray';linecolor=fillcolor;output;end;
+
+    id = 'alt2';
+    do; value='Grade 1' ;fillcolor="cxD5E7B5";linecolor=fillcolor;output;end;
+    do; value='Grade 2' ;fillcolor="cx72BAA9";linecolor=fillcolor;output;end;
+    do; value='Grade 3' ;fillcolor="cx7E5CAD";linecolor=fillcolor;output;end;
+    do; value='Grade 4' ;fillcolor="cx474E93";linecolor=fillcolor;output;end;
+    do; value='Missing';fillcolor='lightgray';linecolor=fillcolor;output;end;
+
+    run;
+
+
+ods path(prepend) work.templat(update);
+
+ods graphics on / width=9in height=4.3in;
+options nodate nonumber pageno=1 orientation=landscape nobyline;
+ods graphics on / DATASKINMAX=10 ATTRPRIORITY=NONE;
+
+goptions reset=all 
+         device=emf  
+         hsize=9 in  vsize=4.3 in 
+         FTEXT="Arial"
+         nofileonly  ;
+
+ods listing close;
+options orientation=landscape nodate nonumber nobyline center;
+ods rtf file=".\Example.rtf" bodytitle_aux image_dpi = 300 nogfootnote nogtitle;    
+
+
+%m_sankey(
+   data=test
+   ,subject=usubjid
+   ,xvar=avisitn
+   ,yvar=cat
+   ,xvarord=%str(1,2,3,4,5)
+   ,yvarord=%str(1,2,3,4)
+   ,xfmt=visf.
+   ,yfmt=avalf.
+   ,stat=percent
+   ,genfig=Y
+   ,attrmap=attr1
+   ,attrid=alt2
+   ,barwidth=0.25
+   ,band_lbl_pos=.1
+   ,filternode=
+   ,filterpop=
+   ,band_color=OUTFLOW
+   ,band_anno=OUTFLOW
+   ,legendtitle=
+   ,xvarvis=2
+   ,colorrep=Y
+   ,gentab=N
+   ,debug=Y
+   );
+
+ods rtf close;
+ods listing;
